@@ -63,6 +63,11 @@ repositories {
     }
 
     maven {
+        name "jitpack"
+        url "https://www.jitpack.io"
+    }
+
+    maven {
         name "kTT MavenReleases"
         url "https://maven.kessokuteatime.work/releases"
     }
@@ -89,23 +94,17 @@ dependencies {
         implementation "curse.maven:AJSCore-445557:$asjcore_laster"
     }
 
-    if (project.enableUsingMysteriumLib.toBoolean()) {
-        implementation "curse.maven:MysteriumLib-645051:3963822"
-    }
-
-    if (project.usePineappleClub.toBoolean()) {
-        implementation "club.someoneice.pineapplepsychic:pineapple-psychic:${project.psychic_version}"
-        implementation "club.someoneice.togocup.pineapple_tag:pineapple-tag:${project.tags_version}"
-        implementation "club.someoneice.togocup.recipebook:PineappleRecipeBook:${project.recipe_book_version}"
-        implementation "club.someoneice.wolftail:WolfTailUI:${project.wolftailui_version}"
-    }
-
-
     if (project.useNEI.toBoolean()) {
         implementation "maven.modrinth:notenoughitems-unofficial:${project.nei_version}-GTNH"
         implementation "maven.modrinth:codechickencore-unofficial:${project.cc_version}"
         implementation "maven.modrinth:codechickenlib-unofficial:${project.cc_version}"
     }
+
+    implementation "curse.maven:manametal-531708:8057127"
+    implementation "curse.maven:muya1-7-10-530214:4364097"
+    implementation "club.someoneice.wolftail:WolfTailUI:0.0.8"
+
+    includeCompile "com.github.artbits:quickio:1.4.4"
 
     implementation fileTree(dir: 'lib', includes: ['*.jar'])
 }
@@ -127,26 +126,12 @@ processResources {
 }
 
 jar {
-    from file("./LICENSE")
-}
+  from {
+    duplicatesStrategy = 'exclude'
 
-if (project.enableUsingMixin.toBoolean()) {
-    apply from: 'mixin.gradle'
-} else {
-    jar {
-        from {
-            configurations.includeCompile.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-    }
-}
-
-if (project.enableUsingMysteriumLib.toBoolean()) {
-    jar {
-        manifest {
-            attributes 'FMLCorePlugin': "${project.patchClass}"
-            attributes 'FMLCorePluginContainsFMLMod': 'true'
-        }
-    }
+    file("./LICENSE")
+    configurations.includeCompile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
 }
 
 sourceCompatibility = targetCompatibility = "1.8"

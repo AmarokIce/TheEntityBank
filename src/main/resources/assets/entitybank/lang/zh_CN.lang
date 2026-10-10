@@ -1,0 +1,17 @@
+entitybank.keybind.name=银行操作
+
+entitybank.bank.gift=赠与
+entitybank.bank.remove=放生
+entitybank.bank.take=取回
+
+entitybank.savebank.yes=立刻寄存
+entitybank.savebank.no=不是现在
+entitybank.savebank.info=将生物寄存到银行吗？此操作将会花费 %s 金币
+
+entitybank.remove.yes=是的！
+entitybank.remove.no=等等！
+entitybank.remove.info=现在就放生吗？
+entitybank.remove.tooltip=它会消失很久（真的很久！）
+
+entitybank.newentity.title=收到一只新的生物
+entitybank.newentity.text=请打开银行查看
