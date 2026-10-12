@@ -1,8 +1,9 @@
 package club.someoneice.manametal.entitybank.network
 
-import club.someoneice.manametal.entitybank.EntityBank
+import club.someoneice.manametal.entitybank.core.EntityBank
 import club.someoneice.manametal.entitybank.network.packet.*
 import com.google.common.collect.HashBiMap
+import com.google.common.collect.Maps
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
@@ -16,7 +17,8 @@ import net.minecraft.network.PacketBuffer
 
 
 object NetworkHandler {
-  val PACKET_MAP: HashBiMap<Int, IPacket> = HashBiMap.create()
+  val PACKET_MAP: HashBiMap<Int, Class<IPacket>> = HashBiMap.create()
+  val CLASS_INSTANCE: HashMap<Class<IPacket>, IPacket> = Maps.newHashMap()
 
   init {
     this.registerPacket(C2SRequestEntities)
@@ -28,12 +30,13 @@ object NetworkHandler {
   }
 
   fun registerPacket(packet: IPacket) {
-    PACKET_MAP[PACKET_MAP.size] = packet
+    PACKET_MAP[PACKET_MAP.size] = packet.javaClass
+    CLASS_INSTANCE[packet.javaClass] = packet
   }
 
   fun sendPacket(packet: IPacket, player: EntityPlayerMP? = null) {
     val buffer = PacketBuffer(Unpooled.buffer())
-    buffer.writeByte(PACKET_MAP.inverse()[packet] ?: return)
+    buffer.writeByte(PACKET_MAP.inverse()[packet.javaClass] ?: return)
     packet.pack(buffer)
 
     val pack = FMLProxyPacket(buffer, EntityBank.MODID)
@@ -48,7 +51,8 @@ object NetworkHandler {
     val player: EntityPlayerMP = (event.handler as NetHandlerPlayServer).playerEntity
 
     val packetId = buf.readByte().toInt()
-    PACKET_MAP[packetId]?.handle(buf, player)
+    val packClass = PACKET_MAP[packetId] ?: return
+    CLASS_INSTANCE[packClass]!!.handle(buf, player)
   }
 
   @SideOnly(Side.CLIENT)
@@ -58,6 +62,7 @@ object NetworkHandler {
     val buf = PacketBuffer(packet.payload())
 
     val packetId = buf.readByte().toInt()
-    PACKET_MAP[packetId]?.handle(buf, null)
+    val packClass = PACKET_MAP[packetId] ?: return
+    CLASS_INSTANCE[packClass]!!.handle(buf, null)
   }
 }

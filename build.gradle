@@ -1,27 +1,30 @@
 buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url = "https://jcenter.bintray.com/"
-        }
-        maven {
-            name = "forge"
-            url = "https://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url = "https://jcenter.bintray.com/"
+    }
+    maven {
+      name = "forge"
+      url = "https://files.minecraftforge.net/maven"
+    }
+    maven {
+      name = "sonatype"
+      url = "https://oss.sonatype.org/content/repositories/snapshots/"
     }
 
-    dependencies {
-        classpath('com.anatawa12.forge:ForgeGradle:1.2-1.1.+') {
-            changing = true
-        }
+  }
 
-        if (project.enableUsingKotlin.toBoolean()) { classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.kotlin_version" }
+  dependencies {
+    classpath('com.anatawa12.forge:ForgeGradle:1.2-1.1.+') {
+      changing = true
     }
+
+    if (project.enableUsingKotlin.toBoolean()) {
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.kotlin_version"
+    }
+  }
 }
 
 apply plugin: 'java'
@@ -32,12 +35,12 @@ apply plugin: 'maven-publish'
 apply plugin: 'forge'
 
 if (project.enableUsingKotlin.toBoolean()) {
-    apply plugin: 'kotlin'
-    apply plugin: 'org.jetbrains.kotlin.jvm'
+  apply plugin: 'kotlin'
+  apply plugin: 'org.jetbrains.kotlin.jvm'
 }
 
 if (project.enableUsingScala.toBoolean()) {
-    apply plugin: 'scala'
+  apply plugin: 'scala'
 }
 
 version = "${project.modVersion}"
@@ -45,84 +48,84 @@ group = "${project.modGroupId}"
 archivesBaseName = "${project.modArchivesName}"
 
 configurations {
-    includeCompile
-    implementation.extendsFrom includeCompile
+  includeCompile
+  implementation.extendsFrom includeCompile
 }
 
 minecraft {
-    version = "1.7.10-10.13.4.1614-1.7.10"
-    runDir = "minecraft"
+  version = "1.7.10-10.13.4.1614-1.7.10"
+  runDir = "minecraft"
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+  mavenLocal()
+  mavenCentral()
 
-    flatDir {
-        dirs 'libs'
-    }
+  flatDir {
+    dirs 'libs'
+  }
 
-    maven {
-        name "jitpack"
-        url "https://www.jitpack.io"
-    }
+  maven {
+    name "jitpack"
+    url "https://www.jitpack.io"
+  }
 
-    maven {
-        name "kTT MavenReleases"
-        url "https://maven.kessokuteatime.work/releases"
-    }
+  maven {
+    name "kTT MavenReleases"
+    url "https://maven.kessokuteatime.work/releases"
+  }
 
-    maven {
-        name "kTT MavenSnapshot"
-        url "https://maven.kessokuteatime.work/snapshots"
-    }
+  maven {
+    name "kTT MavenSnapshot"
+    url "https://maven.kessokuteatime.work/snapshots"
+  }
 
-    maven {
-        name "Curse Maven"
-        url "https://cursemaven.com"
-    }
+  maven {
+    name "Curse Maven"
+    url "https://cursemaven.com"
+  }
 
-    maven {
-        name "Modrinth Maven"
-        url "https://api.modrinth.com/maven"
-    }
+  maven {
+    name "Modrinth Maven"
+    url "https://api.modrinth.com/maven"
+  }
 }
 
 dependencies {
-    if (project.enableUsingKotlin.toBoolean()) {
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-        implementation "curse.maven:AJSCore-445557:$asjcore_laster"
-    }
+  if (project.enableUsingKotlin.toBoolean()) {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation("curse.maven:AJSCore-445557:$asjcore_laster")
+  }
 
-    if (project.useNEI.toBoolean()) {
-        implementation "maven.modrinth:notenoughitems-unofficial:${project.nei_version}-GTNH"
-        implementation "maven.modrinth:codechickencore-unofficial:${project.cc_version}"
-        implementation "maven.modrinth:codechickenlib-unofficial:${project.cc_version}"
-    }
+  if (project.useNEI.toBoolean()) {
+    implementation("maven.modrinth:notenoughitems-unofficial:${project.nei_version}-GTNH")
+    implementation("maven.modrinth:codechickencore-unofficial:${project.cc_version}")
+    implementation("maven.modrinth:codechickenlib-unofficial:${project.cc_version}")
+  }
 
-    implementation "curse.maven:manametal-531708:8057127"
-    implementation "curse.maven:muya1-7-10-530214:4364097"
-    implementation "club.someoneice.wolftail:WolfTailUI:0.0.8"
+  implementation("curse.maven:manametal-531708:8057127")
+  implementation("curse.maven:muya1-7-10-530214:4364097")
+  implementation("club.someoneice.wolftail:WolfTailUI:0.0.9")
 
-    includeCompile "com.github.artbits:quickio:1.4.4"
+  includeCompile("net.openhft:chronicle-map:2026.1")
 
-    implementation fileTree(dir: 'lib', includes: ['*.jar'])
+  implementation fileTree(dir: 'lib', includes: ['*.jar'])
 }
 
 processResources {
-    inputs.property "modversion", project.version
-    inputs.property "mcversion", project.minecraft.version
-    inputs.property "moddescription", project.modDescription
-    inputs.property "modname", project.modName
-    inputs.property "modid", project.modId
+  inputs.property "modversion", project.version
+  inputs.property "mcversion", project.minecraft.version
+  inputs.property "moddescription", project.modDescription
+  inputs.property "modname", project.modName
+  inputs.property "modid", project.modId
 
-    filesMatching("mcmod.info") {
-        expand  'modversion': project.version,
-                'mcversion': project.minecraft.version,
-                'moddescription': project.modDescription,
-                'modname': project.modName,
-                'modid': project.modId
-    }
+  filesMatching("mcmod.info") {
+    expand 'modversion': project.version,
+      'mcversion': project.minecraft.version,
+      'moddescription': project.modDescription,
+      'modname': project.modName,
+      'modid': project.modId
+  }
 }
 
 jar {
@@ -137,30 +140,30 @@ jar {
 sourceCompatibility = targetCompatibility = "1.8"
 
 tasks.withType(Jar).configureEach {
-    compileJava.options.encoding = 'UTF-8'
-    compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:all"
+  compileJava.options.encoding = 'UTF-8'
+  compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:all"
 }
 
 allprojects {
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile).tap {
-            configureEach {
-                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:all"
-            }
-        }
+  gradle.projectsEvaluated {
+    tasks.withType(JavaCompile).tap {
+      configureEach {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:all"
+      }
     }
+  }
 }
 
 if (project.enableUsingKotlin.toBoolean()) {
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
+  compileKotlin {
+    kotlinOptions {
+      jvmTarget = "1.8"
     }
+  }
 
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
+  compileTestKotlin {
+    kotlinOptions {
+      jvmTarget = "1.8"
     }
+  }
 }

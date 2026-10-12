@@ -17,6 +17,7 @@ class GuiGift(val parent: GuiBank, val entity: WidgetEntitySlot): WScreen(256, 2
     var index = 0
     mc.theWorld.playerEntities
       .filterIsInstance<EntityPlayer>()
+      .filter { it.commandSenderName != mc.thePlayer.commandSenderName }
       .map { WidgetPlayerSlot(index++, it, entity, parent) }
       .forEach(scroll::addChild)
   }

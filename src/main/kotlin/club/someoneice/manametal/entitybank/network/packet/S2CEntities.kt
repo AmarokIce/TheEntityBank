@@ -12,8 +12,8 @@ data class S2CEntities(
   val entities: List<NBTTagCompound>
 ): IPacket {
   override fun pack(buff: PacketBuffer) {
-    buff.writeByte(maxSize)
-    buff.writeByte(index)
+    buff.writeInt(maxSize)
+    buff.writeInt(index)
     buff.writeInt(entities.size)
     for (entity in entities) {
       buff.writeNBTTagCompoundToBuffer(entity)
@@ -21,8 +21,8 @@ data class S2CEntities(
   }
 
   override fun handle(buff: PacketBuffer, player: EntityPlayerMP?) {
-    val maxSize = buff.readByte().toInt()
-    val index = buff.readByte().toInt()
+    val maxSize = buff.readInt()
+    val index = buff.readInt()
     val size = buff.readInt()
 
     val list = Lists.newArrayList<NBTTagCompound>()

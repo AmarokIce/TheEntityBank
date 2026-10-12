@@ -10,6 +10,7 @@ import club.someoneice.wolftail.ui.core.WScreen
 import club.someoneice.wolftail.ui.widget.WButton
 import club.someoneice.wolftail.ui.widget.WScrollList
 import club.someoneice.wolftail.util.UIPos
+import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.client.resources.I18n
 import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
@@ -17,7 +18,7 @@ import project.studio.manametalmod.items.ItemSoulBottle
 import java.util.*
 
 class GuiBank(): WScreen(256, 256) {
-  private val scroll = WScrollList(80, 30, 160, 210, StyleBackground)
+  private val scroll = WScrollList(80, 0, 160, 256, StyleBackground)
   private var chose: WidgetEntitySlot? = null
 
   fun setChoseButton(chose: WidgetEntitySlot) {
@@ -30,18 +31,19 @@ class GuiBank(): WScreen(256, 256) {
 
   override fun initWidgets() {
     this.addWidget(this.scroll)
+
     this.addWidget(WCtrlButton(I18n.format("entitybank.bank.gift"),
-      UIPos(10, 150, 60, 20)) {
+      UIPos(0, 150, 60, 20)) {
       this.mc.displayGuiScreen(GuiGift(this, this.chose!!))
       this.chose = null
     })
     this.addWidget(WCtrlButton(I18n.format("entitybank.bank.remove"),
-      UIPos(10, 175, 60, 20)) {
+      UIPos(0, 175, 60, 20)) {
       this.mc.displayGuiScreen(GuiRemoveEntity(this, this.chose!!))
       this.chose = null
     })
     this.addWidget(WCtrlButton(I18n.format("entitybank.bank.take"),
-      UIPos(10, 200, 60, 20)) {
+      UIPos(0, 200, 60, 20)) {
       NetworkHandler.sendPacket(C2SRemoveEntity(this.chose!!.entity.uniqueID, true))
       this.removeChild(this.chose!!)
       this.chose = null
@@ -49,7 +51,7 @@ class GuiBank(): WScreen(256, 256) {
 
     var index = 0
     S2CEntities.PACK_RES
-      .also { it.sortWith(Comparator.comparingInt(S2CEntities::index)) }
+      .sortedWith(Comparator.comparingInt(S2CEntities::index))
       .flatMap(S2CEntities::entities)
       .mapNotNull(this::createEntityOrNull)
       .map { WidgetEntitySlot(index++, it, ::setChoseButton) }
@@ -58,7 +60,15 @@ class GuiBank(): WScreen(256, 256) {
   }
 
   override fun render(mouseX: Int, mouseY: Int, partialTicks: Float) {
-    // TODO: Draw the entity info.
+    val x: Int = if (this.w == -1) 0 else (this.width - this.w) / 2
+    val y: Int = if (this.h == -1) 0 else (this.height - this.h) / 2
+
+    this.chose ?: return
+
+    GuiInventory.func_147046_a(
+      x + 25, y + 90, 30,
+      x + 35 - mouseX.toFloat(), y + 25 - mouseY.toFloat(),
+      this.chose!!.entity)
   }
 
   override fun drawBackground(sign: Int) {
@@ -66,6 +76,7 @@ class GuiBank(): WScreen(256, 256) {
   }
 
   override fun getStyle(): IStyleUI = IStyleUI.INSTANCE
+  override fun doesGuiPauseGame(): Boolean = false
 
   private fun createEntityOrNull(nbt: NBTTagCompound): EntityLiving? {
     return ItemSoulBottle.createEntityFromNBT(nbt, mc.theWorld, 0, 0, 0) as? EntityLiving

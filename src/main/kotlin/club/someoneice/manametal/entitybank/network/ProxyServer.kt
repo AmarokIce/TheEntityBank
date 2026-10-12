@@ -1,4 +1,4 @@
-package club.someoneice.manametal.entitybank
+package club.someoneice.manametal.entitybank.network
 
 
 class ProxyServer: IProxy {

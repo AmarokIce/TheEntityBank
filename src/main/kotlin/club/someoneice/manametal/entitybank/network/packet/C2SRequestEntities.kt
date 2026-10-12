@@ -1,11 +1,9 @@
 package club.someoneice.manametal.entitybank.network.packet
 
-import club.someoneice.manametal.entitybank.EntityBank
-import club.someoneice.manametal.entitybank.ThreadDataHandler
+import club.someoneice.manametal.entitybank.core.BankData
 import club.someoneice.manametal.entitybank.network.IPacket
 import club.someoneice.manametal.entitybank.network.NetworkHandler
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.PacketBuffer
 
 object C2SRequestEntities: IPacket {
@@ -14,19 +12,11 @@ object C2SRequestEntities: IPacket {
 
   override fun handle(buff: PacketBuffer, player: EntityPlayerMP?) {
     player ?: return
-    ThreadDataHandler.TASKS.add { checkAndSend(player) }
+    checkAndSend(player)
   }
 
   private fun checkAndSend(player: EntityPlayerMP) {
-    val db = EntityBank.createDB()
-    if (!db.exists(player.commandSenderName)) {
-      NetworkHandler.sendPacket(S2CEntities.INSTANCE, player)
-      return
-    }
-
-    val collection = db.get(player.commandSenderName, List::class.java).filterIsInstance<NBTTagCompound>()
-    db.close()
-
+    val collection = BankData.getEntities(player.commandSenderName)
     if (collection.isEmpty()) {
       NetworkHandler.sendPacket(S2CEntities.INSTANCE, player)
       return

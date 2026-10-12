@@ -10,6 +10,7 @@ import club.someoneice.wolftail.util.UIPos
 import club.someoneice.wolftail.util.UtilGui
 import com.google.common.collect.ImmutableList
 import net.minecraft.client.gui.Gui
+import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.shader.Framebuffer
@@ -23,14 +24,14 @@ import java.awt.image.BufferedImage
 
 class WidgetEntitySlot(index: Int, val entity: EntityLiving, val onClick: (WidgetEntitySlot) -> Unit):
   IWidget, IMouseEventListener, ITooltip {
-  private val pos = UIPos((index + 1) % 8 * 20, (index + 1) / 8 * 20, 20, 20)
+  private val pos = UIPos(index % 8 * 20 + 1, index / 8 * 20 + 1, 20, 20)
   private val entityAvatar: BufferedImage = bakeEntityAvatar(entity)
 
   override fun getStyle(): IStyle = StyleAdapter.INSTANCE
   override fun weightPos(): UIPos = this.pos
 
   override fun render(pGui: Gui, pMouseX: Int, pMouseY: Int, pGuiX: Int, pGuiY: Int) {
-    UtilGui.drawImageWithoutResource(pGuiX + 2, pGuiY + 2, this.entityAvatar)
+    UtilGui.drawImageWithoutResource(pGuiX + this.pos.x + 2, pGuiY + this.pos.y + 2, this.entityAvatar)
   }
 
   override fun onMouseClicked(pGui: Gui, pMouseX: Int, pMouseY: Int, pGuiX: Int, pGuiY: Int, pMouseButton: Int) {
@@ -61,7 +62,6 @@ class WidgetEntitySlot(index: Int, val entity: EntityLiving, val onClick: (Widge
         GL11.glPushMatrix()
         run {
           GL11.glLoadIdentity()
-
           GL11.glEnable(GL11.GL_DEPTH_TEST)
           GL11.glEnable(GL11.GL_BLEND)
           GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
@@ -69,9 +69,8 @@ class WidgetEntitySlot(index: Int, val entity: EntityLiving, val onClick: (Widge
           val entityHeight = if (entity.height > 0) entity.height else 1.8f
           val scale = (size * 0.45f) / entityHeight
 
-          GL11.glTranslatef(0.0f, size * 0.2f, 0.0f) // 偏置，使头部居中
+          GL11.glTranslatef(0.0f, size * 0.2f, 0.0f)
           GL11.glScalef(-scale, scale, scale)
-
           GL11.glRotatef(180.0f, 0.0f, 0.0f, 1.0f)
           GL11.glRotatef(0.0f, 1.0f, 0.0f, 0.0f)
           GL11.glRotatef(180.0f, 0.0f, 1.0f, 0.0f)
@@ -82,24 +81,33 @@ class WidgetEntitySlot(index: Int, val entity: EntityLiving, val onClick: (Widge
           entity.renderYawOffset = 180.0f
           entity.rotationYawHead = 180.0f
 
+          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit)
           RenderHelper.enableStandardItemLighting()
+          OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit)
+          GL11.glEnable(GL11.GL_TEXTURE_2D)
+          OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
+          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit)
+
           RenderManager.instance.playerViewY = 180.0f
           RenderManager.instance.renderEntityWithPosYaw(
             entity,
             0.0, 0.0, 0.0,
             0.0f, 1.0f
           )
+
           RenderHelper.disableStandardItemLighting()
+          GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f)
 
           entity.renderYawOffset = tempYO
           entity.rotationYawHead = tempYR
 
           image = renderImageFromFBO(size)
 
-          GL11.glMatrixMode(GL11.GL_PROJECTION)
+          GL11.glDisable(GL11.GL_TEXTURE)
+          GL11.glDisable(GL11.GL_DEPTH_TEST)
+          GL11.glDisable(GL11.GL_BLEND)
         }
         GL11.glPopMatrix()
-        GL11.glMatrixMode(GL11.GL_MODELVIEW)
       }
       GL11.glPopMatrix()
 

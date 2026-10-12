@@ -11,6 +11,7 @@ import club.someoneice.wolftail.ui.widget.WButton
 import club.someoneice.wolftail.ui.widget.WString
 import club.someoneice.wolftail.util.UIPos
 import com.google.common.collect.ImmutableList
+import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.client.resources.I18n
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.IChatComponent
@@ -32,7 +33,7 @@ class GuiRemoveEntity(val parent: GuiBank, val entity: WidgetEntitySlot): WScree
 
   val BUTTON_NO = WButton(
     I18n.format("entitybank.remove.no"),
-    UIPos(40, 144, 80, 16),
+    UIPos(150, 144, 80, 16),
     StyleBackground
   ) {
     this.mc.displayGuiScreen(this.parent)
@@ -51,5 +52,16 @@ class GuiRemoveEntity(val parent: GuiBank, val entity: WidgetEntitySlot): WScree
   }
 
   override fun render(mouseX: Int, mouseY: Int, partialTicks: Float) {
+    val x: Int = if (this.w == -1) 0 else (this.width - this.w) / 2
+    val y: Int = if (this.h == -1) 0 else (this.height - this.h) / 2
+
+    GuiInventory.func_147046_a(
+      x + 128, y + 80, 30,
+      x + 128 - mouseX.toFloat(), y + 30 - mouseY.toFloat(),
+      this.entity.entity)
+  }
+
+  override fun onGuiClosed() {
+    this.mc.displayGuiScreen(this.parent)
   }
 }

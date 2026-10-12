@@ -1,4 +1,4 @@
-package club.someoneice.manametal.entitybank
+package club.someoneice.manametal.entitybank.core
 
 import com.google.common.collect.Queues
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
@@ -9,7 +9,7 @@ object ThreadDataHandler {
   val TASKS: Queue<Runnable> = Queues.newArrayDeque()
 
   @SubscribeEvent
-  fun onEvent(event: TickEvent.WorldTickEvent) {
+  fun onEvent(event: TickEvent.ServerTickEvent) {
     if (event.phase == TickEvent.Phase.END || TASKS.isEmpty()) {
       return
     }

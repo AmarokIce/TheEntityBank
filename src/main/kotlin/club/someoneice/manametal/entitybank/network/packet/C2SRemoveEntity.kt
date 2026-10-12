@@ -1,7 +1,8 @@
 package club.someoneice.manametal.entitybank.network.packet
 
-import club.someoneice.manametal.entitybank.EntityBank
-import club.someoneice.manametal.entitybank.ThreadDataHandler
+import club.someoneice.manametal.entitybank.core.BankData
+import club.someoneice.manametal.entitybank.core.EntityBank
+import club.someoneice.manametal.entitybank.core.ThreadDataHandler
 import club.someoneice.manametal.entitybank.network.IPacket
 import club.someoneice.manametal.entitybank.network.NetworkHandler
 import net.minecraft.entity.item.EntityItem
@@ -13,11 +14,13 @@ import java.util.*
 
 data class C2SRemoveEntity(
   val uuid: UUID,
-  val shouldGivePlayerBottle: Boolean = false
+  val shouldGivePlayerBottle: Boolean = false,
+  val giftToPlayer: String = ""
 ): IPacket {
   override fun pack(buff: PacketBuffer) {
     buff.writeStringToBuffer(uuid.toString())
     buff.writeBoolean(shouldGivePlayerBottle)
+    buff.writeStringToBuffer(giftToPlayer)
   }
 
   override fun handle(buff: PacketBuffer, player: EntityPlayerMP?) {
@@ -25,20 +28,16 @@ data class C2SRemoveEntity(
 
     val uuid = UUID.fromString(buff.readStringFromBuffer(36))
     val shouldGivePlayerBottle = buff.readBoolean()
-    ThreadDataHandler.TASKS.add { handle(player, uuid, shouldGivePlayerBottle) }
+    val gift = buff.readStringFromBuffer(96)
+    ThreadDataHandler.TASKS.add { handle(player, uuid, shouldGivePlayerBottle, gift) }
   }
 
-  fun handle(player: EntityPlayerMP, uuid: UUID, bottle: Boolean) {
-    val db = EntityBank.createDB()
-    if (!db.exists(player.commandSenderName)) {
-      NetworkHandler.sendPacket(S2CEntities.INSTANCE, player)
-      return
-    }
-
-    val collection = db.get(player.commandSenderName, List::class.java).filterIsInstance<NBTTagCompound>().toMutableList()
+  fun handle(player: EntityPlayerMP, uuid: UUID, bottle: Boolean, giftTo: String) {
+    val collection = BankData.getEntities(player.commandSenderName)
     if (collection.isEmpty()) {
       return
     }
+
     val entity = collection.firstOrNull {
       if (!it.hasKey("UUIDMost", 4) || !it.hasKey("UUIDLeast", 4)) {
         return@firstOrNull false
@@ -49,14 +48,30 @@ data class C2SRemoveEntity(
     }
 
     if (Objects.isNull(entity)) {
-      db.close()
       return
     }
 
     collection.remove(entity!!)
+    BankData.setEntities(player.commandSenderName, collection)
+
+    if (giftTo.isNotEmpty()) {
+      val entityPlayer = player.serverForPlayer.playerEntities
+        .filterIsInstance<EntityPlayerMP>()
+        .first { it.commandSenderName == giftTo }
+
+      if (entity.hasKey("OwnerUUID", 8)) {
+        entity.setString("OwnerUUID", entityPlayer.uniqueID.toString())
+      }
+
+      val list: MutableList<NBTTagCompound> = BankData.getEntities(giftTo)
+      list.add(entity)
+      BankData.setEntities(giftTo, list)
+
+      NetworkHandler.sendPacket(S2CNotice, entityPlayer)
+      return
+    }
+
     if (!bottle) {
-      db.set(player.commandSenderName, collection as List<*>)
-      db.close()
       return
     }
 
@@ -68,8 +83,6 @@ data class C2SRemoveEntity(
         player.posX, player.posY + 0.5, player.posZ, stack)
       player.worldObj.spawnEntityInWorld(entityItem)
     }
-    db.set(player.commandSenderName, collection as List<*>)
-    db.close()
   }
 
   companion object {
